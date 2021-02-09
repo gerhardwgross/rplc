@@ -288,53 +288,52 @@ long ProcessFile(char *fname, unsigned int fattrib)
     if (g_szFile == 0)
     {
         //fprintf(stderr, "  0 bytes in file \"%s\"\n", fname);
-        retVal = -1;
+        return -1;
     }
-    else if (g_szFile < 0)
-        retVal = -1;
-    else
-    {
-        if (!Append)
-            if ((retVal = PrepNewTempFileName()) == -1)
-                goto LBL_END;
+    if (g_szFile < 0)
+        return -1;
 
-        if (Append)
-            retVal = append_only(fname);
-        //else if (!ChngCaseOrAppend && !Case_Insensitive && !WholeWord)
-        //    retVal = wild_no_case(fname);
-        else
-            retVal = any_options(fname);
-
-        // Separate match count from possible error value
-        if (retVal < 0)
+    if (!Append)
+        if ((retVal = PrepNewTempFileName()) == -1)
             goto LBL_END;
 
-        if (g_srcBuf != 0)
-            free(g_srcBuf);
-        if (g_destBuf != 0)
-            free(g_destBuf);
-        g_srcBuf = g_destBuf = 0;
+    if (Append)
+        retVal = append_only(fname);
+    //else if (!ChngCaseOrAppend && !Case_Insensitive && !WholeWord)
+    //    retVal = wild_no_case(fname);
+    else
+        retVal = any_options(fname);
 
-        if (retVal > 0)
-        {
-            g_filesWithHitsCntr++;
-            g_rplcCntTotal += retVal;
-            // There has been at least one match found
-            if ((retVal2 = move_temp_to_orig(fname, fattrib, brplc)) == -1)
-            {
-                retVal = retVal2;
-                goto LBL_END;
-            }
-            else if (brplc == false)
-                retVal = 0;
-        }
+    // Separate match count from possible error value
+    if (retVal < 0)
+        goto LBL_END;
 
-        if (_access(Temp_File, 0) == 0)
+    if (g_srcBuf != 0)
+        free(g_srcBuf);
+    if (g_destBuf != 0)
+        free(g_destBuf);
+    g_srcBuf = g_destBuf = 0;
+
+    if (retVal > 0)
+    {
+        g_filesWithHitsCntr++;
+        g_rplcCntTotal += retVal;
+        // There has been at least one match found
+        if ((retVal2 = move_temp_to_orig(fname, fattrib, brplc)) == -1)
         {
-            if (remove(Temp_File) != 0)
-                RPLC_ERR_MSG(16, 2, __LINE__);
+            retVal = retVal2;
+            goto LBL_END;
         }
+        else if (brplc == false)
+            retVal = 0;
     }
+
+    if (_access(Temp_File, 0) == 0)
+    {
+        if (remove(Temp_File) != 0)
+            RPLC_ERR_MSG(16, 2, __LINE__);
+    }
+
     g_filesSearchedCntr++;
 
 LBL_END:
@@ -1545,7 +1544,7 @@ has been found.  A check is made to see if the file has write _access
 (otherwise it can't be removed).  If it does not another function is called
 that uses the __chmod() system call to change the file _access to 'writeable'.
 The file is then removed and replaced with the new file.  The file _access
-is then changed back. Of course, user permisions my prevent this.
+is then changed back. Of course, user permisions may prevent this.
 ***************************************************************************/
 
 long move_temp_to_orig(char *fname, unsigned fattrib, bool& brplc)

@@ -64,7 +64,8 @@ extern char g_dirsToOmit[MAX_DIRS_TO_OMIT][_MAX_PATH];
 /***************************************************************************
     Local function prototypes
 ***************************************************************************/
-void PrintLastError(LPTSTR lpszFunction);
+//void PrintLastError(LPTSTR lpszFunction);
+void PrintLastError(char* lpszFunction);
 
 //char* strerror(int errNum)
 //{
@@ -270,15 +271,21 @@ long WriteableReplace(char *fname, unsigned fattrib)
 {
     long retVal = 0;
     char backupName[_MAX_PATH];
+    TCHAR *wFname = 0;
+    size_t charsConverted, len;
 
     strcpy_s(backupName, _MAX_PATH, fname);
     strcat_s(backupName,  _MAX_PATH, ".rplc.bak");
+    remove(backupName);
     if(rename(fname, backupName) != 0)
         RPLC_ERR_MSG(17, 0, __LINE__);
 
     if(rename(Temp_File, fname) != 0)
         RPLC_ERR_MSG(17, 1, __LINE__);
-    if(SetFileAttributes(fname, (unsigned long)fattrib) == 0)
+    len = strlen(fname) + 1;
+    wFname = new TCHAR[len];
+    mbstowcs_s(&charsConverted, wFname, len, fname, len- 1);
+    if(SetFileAttributes(wFname, (unsigned long)fattrib) == 0)
         RPLC_ERR_MSG(21, 0, __LINE__);
 
     if (Backup == 1)
@@ -288,6 +295,8 @@ long WriteableReplace(char *fname, unsigned fattrib)
 
 LBL_END:
 
+    if (wFname != 0)
+        delete[] wFname;
     return retVal;
 }
 
@@ -332,7 +341,8 @@ LBL_END:
     return retVal;
 }
 
-void PrintLastError(LPTSTR lpszFunction)
+//void PrintLastError(LPTSTR lpszFunction)
+void PrintLastError(char* lpszFunction)
 { 
     // Retrieve the system error message for the last-error code
 
@@ -359,7 +369,7 @@ void PrintLastError(LPTSTR lpszFunction)
         TEXT("%s failed with error %d: %s"), 
         lpszFunction, dw, lpMsgBuf); 
     //MessageBox(NULL, (LPCTSTR)lpDisplayBuf, TEXT("Error"), MB_OK);
-	fprintf(stderr, "  GetLastError: %s\n", (LPCTSTR)lpDisplayBuf);
+	fprintf(stderr, "  GetLastError: %s\n", (char*)lpDisplayBuf);
 
     LocalFree(lpMsgBuf);
     LocalFree(lpDisplayBuf);
