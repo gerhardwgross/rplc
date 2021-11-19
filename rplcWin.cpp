@@ -64,7 +64,6 @@ extern char g_dirsToOmit[MAX_DIRS_TO_OMIT][_MAX_PATH];
 /***************************************************************************
     Local function prototypes
 ***************************************************************************/
-//void PrintLastError(LPTSTR lpszFunction);
 void PrintLastError(char* lpszFunction);
 
 //char* strerror(int errNum)
@@ -182,13 +181,11 @@ if the -R command line option was not supplied.  The current directory is
 searched for files that match the file name, with any wildcards, given at
 the command line.  For each of those files, ProcessFile() is called which
 does the actual search and replace of the command line specified strings.
-
 The file attributes are saved in a local array "AllFileAttribs[]" so they
 can be used to set the attributes of the new file.  This is done so that
 the original file attributes are unchanged after using this utility, even
 though they may be changed (e.g. from read only) temporarily during
 program execution.
-
 In order to run this utility successfully in directories with many files
 that match the file being searched for, MAX_FILES is defined fairly large.
 I attempted to allocate space dynamically after counting the files in the
@@ -271,7 +268,7 @@ long WriteableReplace(char *fname, unsigned fattrib)
 {
     long retVal = 0;
     char backupName[_MAX_PATH];
-    TCHAR *wFname = 0;
+    wchar_t *wFname = 0;
     size_t charsConverted, len;
 
     strcpy_s(backupName, _MAX_PATH, fname);
@@ -283,9 +280,9 @@ long WriteableReplace(char *fname, unsigned fattrib)
     if(rename(Temp_File, fname) != 0)
         RPLC_ERR_MSG(17, 1, __LINE__);
     len = strlen(fname) + 1;
-    wFname = new TCHAR[len];
+    wFname = new wchar_t[len];
     mbstowcs_s(&charsConverted, wFname, len, fname, len- 1);
-    if(SetFileAttributes(wFname, (unsigned long)fattrib) == 0)
+    if(SetFileAttributesW(wFname, (unsigned long)fattrib) == 0)
         RPLC_ERR_MSG(21, 0, __LINE__);
 
     if (Backup == 1)
@@ -304,9 +301,7 @@ LBL_END:
     Create a new Temporary file name with path to c:\temp\.    Increnment the
     extension by one each time, resetting to 0 after 999 so the extension
     is limited to 3 characters.  The Temp Filename should look like this:
-
         c:\Temp\rplc004.tmp
-
     where 4 is replaced with whatever the current value of the file counter.
 ***************************************************************************/
 
@@ -363,9 +358,9 @@ void PrintLastError(char* lpszFunction)
     // Display the error message and exit the process
 
     lpDisplayBuf = (LPVOID)LocalAlloc(LMEM_ZEROINIT, 
-        (lstrlen((LPCTSTR)lpMsgBuf)+lstrlen((LPCTSTR)lpszFunction)+40)*sizeof(TCHAR)); 
+        (lstrlen((LPCTSTR)lpMsgBuf)+lstrlen((LPCTSTR)lpszFunction)+40)*sizeof(wchar_t)); 
     StringCchPrintf((LPTSTR)lpDisplayBuf, 
-        LocalSize(lpDisplayBuf) / sizeof(TCHAR),
+        LocalSize(lpDisplayBuf) / sizeof(wchar_t),
         TEXT("%s failed with error %d: %s"), 
         lpszFunction, dw, lpMsgBuf); 
     //MessageBox(NULL, (LPCTSTR)lpDisplayBuf, TEXT("Error"), MB_OK);
