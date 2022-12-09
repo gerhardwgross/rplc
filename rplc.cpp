@@ -134,8 +134,10 @@ bool First_Write                    = true;
 bool First_Read                     = true;
 long g_filePos                      = 0;
 long g_numDirsToOmit				= 0;
+long g_numFilePtrnsToOmit           = 0;
 long g_numLinesAtEndToRemove        = 0;
 long g_numLinesAtFrontToRemove      = 0;
+char g_filePtrnsToOmit[MAX_FILE_PATTERNS_TO_OMIT][_MAX_PATH];
 char g_dirsToOmit[MAX_DIRS_TO_OMIT][_MAX_PATH];
 FilesDirs g_dirs[MAX_FILES_OR_DIRS_TO_CHANGE];
 FilesDirs g_files[MAX_FILES_OR_DIRS_TO_CHANGE];
@@ -288,10 +290,8 @@ long ProcessFile(char *fname, unsigned int fattrib)
     if (g_szFile == 0)
     {
         //fprintf(stderr, "  0 bytes in file \"%s\"\n", fname);
-        return -1;
+        return 0;
     }
-    if (g_szFile < 0)
-        return -1;
 
     if (!Append)
         if ((retVal = PrepNewTempFileName()) == -1)
@@ -983,7 +983,6 @@ LBL_END:
 {
     size_t num_read;
     FILE *fp;
-
     if ((fp = fopen(fname, "rb")) == (FILE*)NULL)
         fprintf(stderr,"line %d, Can't open %s.  Is path correct?",
                      __LINE__, fname);
@@ -1000,14 +999,12 @@ LBL_END:
     This function opens the file whose name is stored in Temp_File for
     writing if the 'First_Write' variable is set and for append if it is not.
     The first 'sz' bytes stored in 'd_buf' are written to the file.
-
     Raw (unbuffered) file I/O is used in this program as discussed at the
     top of the file.    This differs from the PC and Mac environment because
     there are file permisions that have to be dealt with.  To handle this
     the 'open' command takes a final argument that sets file permissions
     when used with the 'O_CREAT' mode bit.  Below I use the 644 permission
     for the temp file created.
-
     This function can be  modified so that the output is printed to
     standard output, instead of another file.  This makes it act more like
     other UNIX utilities.  The command line redirection symbol ('>') can
@@ -1082,7 +1079,6 @@ void removeslash(char *strng)
     slides the arg arrays back accordingly for each if they are option
     args.  Therefore, options can appear anywhere on the command line, in
     any order, and more than once (each option can be supplied separately).
-
     NOTE:
         For this program, it may be desired that the search or replace
         strings begin with a hyphen.    In this case, this function bypasses
@@ -1165,8 +1161,19 @@ int deal_with_options(int arrgc, char *arrgv[])
                         case 'N':
                             FileRenameDryRun = true;
                             break;
+                        case 'o':
+                            // This option must be succeeded with a space, then a string and then a space
+                            if (g_numFilePtrnsToOmit + 1 >= MAX_FILE_PATTERNS_TO_OMIT)
+                                fprintf(stderr, "Omitting too many file types - max %d", MAX_FILE_PATTERNS_TO_OMIT);
+                            strcpy_s(g_filePtrnsToOmit[g_numFilePtrnsToOmit++], _MAX_PATH, (arrgv[j] + i + 2));
 
-						case 'O':
+                            // Consume the directory name, decrement number of args, and move the loop counter
+                            for (i = j + 1; i < arrgc - 1; i++)
+                                arrgv[i] = arrgv[i + 1];
+                            arrgc--;
+                            i = num_opts;
+                            break;
+                        case 'O':
 							// This option must be succeeded with a space, then a string and then a space
 							if (g_numDirsToOmit + 1 >= MAX_DIRS_TO_OMIT)
 								fprintf(stderr, "Omitting too many directories - max %d", MAX_DIRS_TO_OMIT);
@@ -1292,10 +1299,8 @@ LBL_END:
 
 /***************************************************************************
     This function reads a block of data from the source file.
-
     - In Windows, virtual memory is used so there should be no problem
       requesting any size memory block.
-
     - a memory check is made to make sure there is enough memory for the
       two buffers as well as 51200 left over for any system stuff.
     - a check is made that there is more than 102400 free bytes in RAM.

@@ -59,7 +59,9 @@ extern long g_fileRenameCnt;
 
 extern char Temp_File[];
 extern long g_numDirsToOmit;
+extern long g_numFilePtrnsToOmit;
 extern char g_dirsToOmit[MAX_DIRS_TO_OMIT][_MAX_PATH];
+extern char g_filePtrnsToOmit[MAX_FILE_PATTERNS_TO_OMIT][_MAX_PATH];
 
 /***************************************************************************
     Local function prototypes
@@ -82,7 +84,7 @@ bool ShouldIgnoreThisFile(const _finddata_t &c_file)
 	// See if this directory should be skipped
 	for (int i = 0; i < g_numDirsToOmit; ++i)
 	{
-		if ((c_file.attrib & _A_SUBDIR) && strcmp(g_dirsToOmit[i], c_file.name) == 0)
+		if ((c_file.attrib & _A_SUBDIR) && strcmp(g_filePtrnsToOmit[i], c_file.name) == 0)
 		{
 			retVal = true;
 			break;
@@ -90,6 +92,17 @@ bool ShouldIgnoreThisFile(const _finddata_t &c_file)
 	}
 
 	return retVal;
+}
+
+bool ShouldIgnoreThisDir(WIN32_FIND_DATA ffd)
+{
+    for (int i = 0; i < g_numDirsToOmit; ++i)
+    {
+        if ((ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && strcmp(g_dirsToOmit[i], ffd.cFileName) == 0)
+            return true;
+    }
+
+    return false;
 }
 
 /***************************************************************************

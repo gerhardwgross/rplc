@@ -51,6 +51,7 @@
 #define FREQ_UNICODE            1      // Unicode search (two bytes per char)
 
 const int MAX_DIRS_TO_OMIT      = 50;
+const int MAX_FILE_PATTERNS_TO_OMIT = 50;
 const int MAX_FILES_OR_DIRS_TO_CHANGE = 50000;
 
 #define NL          10
