@@ -100,6 +100,7 @@ char F_Arr[ARSZ_MAX], R_Arr[ARSZ_MAX];
 char F_Arr_Case[ARSZ_MAX];
 char F_Arr_NoWC[ARSZ_MAX];
 char WC_Arr[ARSZ_MAX];
+char Message[_MAX_PATH];
 char* g_srcBuf                     = 0;
 char* g_destBuf                    = 0;
 long g_srchStrSz;
@@ -330,8 +331,10 @@ long ProcessFile(char *fname, unsigned int fattrib)
 
     if (_access(Temp_File, 0) == 0)
     {
-        if (remove(Temp_File) != 0)
+        if (remove(Temp_File) != 0) {
+            strcpy_s(Message, _MAX_PATH, Temp_File);
             RPLC_ERR_MSG(16, 2, __LINE__);
+        }
     }
 
     g_filesSearchedCntr++;
@@ -984,7 +987,7 @@ LBL_END:
     size_t num_read;
     FILE *fp;
     if ((fp = fopen(fname, "rb")) == (FILE*)NULL)
-        fprintf(stderr,"line %d, Can't open %s.  Is path correct?",
+        fprintf(stderr, "line %d, Can't open %s.  Is path correct?",
                      __LINE__, fname);
     fseek(fp, off_st, SEEK_SET);
     if ((num_read = fread(s_buf, sizeof(char), sz, fp)) != sz)
@@ -1583,8 +1586,10 @@ long move_temp_to_orig(char *fname, unsigned fattrib, bool& brplc)
         case 'N':
             fprintf(stderr, "  ...File \"%s\" skipped!\n", fname);
             brplc = FALSE;
-            if (remove(Temp_File) != 0)
+            if (remove(Temp_File) != 0) {
+                strcpy_s(Message, _MAX_PATH, Temp_File);
                 RPLC_ERR_MSG(16, 1, __LINE__);
+            }
             break;
         default:
             break;
@@ -1653,63 +1658,64 @@ void ChangePathEndNames(FilesDirs arr[], long cnt)
     If passed arg is 99, print usage and not error.
 ***************************************************************************/
 
-void this_sucks(
-    int i, int n, int line)
+void this_sucks(int i, int n, int line)
 {
+    char buff[_MAX_PATH];
     if (Instructions)
     {
         print_explanation();
         goto LBL_END;
     }
     else if (i != 99)
-        fprintf(stderr, "\nError %d-%d, line:%d\n", i, n, line);
+        fprintf(stderr, "\n    Error %d-%d, line:%d\n    ", i, n, line);
 
     switch(i)
     {
         case 1:
-            fprintf(stderr,"ASCII values must range from 0-255 inclusive.");
+            fprintf(stderr, "ASCII values must range from 0-255 inclusive.");
             break;
         case 3:
-            fprintf(stderr,"Wrong number of arguments.");
+            fprintf(stderr, "Wrong number of arguments.");
             break;
         case 4:
-            fprintf(stderr,"Not enough memory for files of this size.");
-            fprintf(stderr,"\nSplit the file into one or more separate files.");
-            fprintf(stderr,"\nTry again on each of the separate files.");
+            fprintf(stderr, "Not enough memory for files of this size.");
+            fprintf(stderr, "\nSplit the file into one or more separate files.");
+            fprintf(stderr, "\nTry again on each of the separate files.");
             break;
         case 5:
-            fprintf(stderr,"That is not a valid option.");
+            fprintf(stderr, "That is not a valid option.");
             break;
         case 7:
-            fprintf(stderr,"There ain't enough memory on this machine.");
+            fprintf(stderr, "There ain't enough memory on this machine.");
             break;
         case 8:
-            fprintf(stderr,"Can't open Temp_File: \"%s\".", Temp_File);
+            fprintf(stderr, "Can't open Temp_File: \"%s\".", Temp_File);
             break;
         case 9:
-            fprintf(stderr,"File write.  Bytes: requested %d", n);
+            fprintf(stderr, "File write.  Bytes: requested %d", n);
             break;
         case 10:
-            fprintf(stderr,"File _read.  Bytes: requested %d", n);
+            fprintf(stderr, "File _read.  Bytes: requested %d", n);
             break;
         case 11:
-            fprintf(stderr,"Could not perform 'del' shell command.");
+            fprintf(stderr, "Could not perform 'del' shell command.");
             break;
         case 12:
-            fprintf(stderr,"Could not perform 'move' shell command.\n");
-            fprintf(stderr,"Processed file contents remain in %s.", Temp_File);
+            fprintf(stderr, "Could not perform 'move' shell command.\n");
+            fprintf(stderr, "Processed file contents remain in %s.", Temp_File);
             break;
         case 13:
-            fprintf(stderr,"Error with mkdir(TempPath).");
+            fprintf(stderr, "Error with mkdir(TempPath).");
             break;
         case 14:
-            fprintf(stderr,"Temporary file extension name too long (>3).");
+            fprintf(stderr, "Temporary file extension name too long (>3).");
             break;
         case 15:
             perror("Error calling \"_getcwd()\"");
             break;
         case 16:
-            perror("Error calling \"remove()\"");
+            sprintf_s(buff, _MAX_PATH, "Error calling \"remove(%s)\"", Message);
+            perror(buff);
             break;
         case 17:
             perror("Error calling \"rename()\"");
@@ -1721,14 +1727,13 @@ void this_sucks(
             perror("Error calling \"_chdir()\"");
             break;
         case 20:
-            fprintf(stderr,"Error calling \"fwprintf_s(()\".");
+            fprintf(stderr, "Error calling \"fwprintf_s(()\".");
         case 21:
-            fprintf(stderr,"Error calling \"SetFileAttributes()\".");
+            fprintf(stderr, "Error calling \"SetFileAttributes()\".");
         case 22:
-            fprintf(stderr,"Error calling \"CopyFile()\".");
+            fprintf(stderr, "Error calling \"CopyFile()\".");
         case 23:
-            fprintf(stderr,"File name too long - must be less than %d.",
-               _MAX_PATH);
+            fprintf(stderr, "File name too long - must be less than %d.", _MAX_PATH);
             break;
         case 24:
             fprintf(stderr, "System call _chdir().");

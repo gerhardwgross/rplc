@@ -72,7 +72,7 @@ const int MAX_FILES_OR_DIRS_TO_CHANGE = 50000;
 #define RPLC_ERR_MSG(a, b, c)   \
 {                               \
     if (a != 99)                \
-        fprintf(stderr, "\n\terrnoMsg: %s\n", ErrNoMsg(errno)); \
+        fprintf(stderr, "\n    errnoMsg: %s\n", ErrNoMsg(errno)); \
     this_sucks(a, b, c);        \
     retVal = -1;                \
     goto LBL_END;               \

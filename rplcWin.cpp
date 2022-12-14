@@ -62,6 +62,7 @@ extern long g_numDirsToOmit;
 extern long g_numFilePtrnsToOmit;
 extern char g_dirsToOmit[MAX_DIRS_TO_OMIT][_MAX_PATH];
 extern char g_filePtrnsToOmit[MAX_FILE_PATTERNS_TO_OMIT][_MAX_PATH];
+extern char Message[];
 
 /***************************************************************************
     Local function prototypes
@@ -300,8 +301,10 @@ long WriteableReplace(char *fname, unsigned fattrib)
 
     if (Backup == 1)
         fprintf(stderr, "Saved backup of original file in %s\n", backupName);
-    else if(remove(backupName) != 0)
+    else if (remove(backupName) != 0) {
+        strcpy_s(Message, _MAX_PATH, backupName);
         RPLC_ERR_MSG(16, 0, __LINE__);
+    }
 
 LBL_END:
 
