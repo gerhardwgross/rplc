@@ -133,6 +133,7 @@ bool Append                         = false;
 bool ChngCaseOrAppend               = false;
 bool First_Write                    = true;
 bool First_Read                     = true;
+bool SuppressErrorsPrintout         = true;
 long g_filePos                      = 0;
 long g_numDirsToOmit				= 0;
 long g_numFilePtrnsToOmit           = 0;
@@ -1145,6 +1146,9 @@ int deal_with_options(int arrgc, char *arrgv[])
                         case 'A':
                             OverWriteAll = true;
                             break;
+                        case 'e':
+                            SuppressErrorsPrintout = false;
+                            break;
                         case 'U':
                              g_textEncoding = FREQ_UNICODE;
                              break;
@@ -1660,6 +1664,9 @@ void ChangePathEndNames(FilesDirs arr[], long cnt)
 
 void this_sucks(int i, int n, int line)
 {
+    if (SuppressErrorsPrintout)
+        return;
+
     char buff[_MAX_PATH];
     if (Instructions)
     {
@@ -1780,7 +1787,7 @@ LBL_END:
 void print_usage()
     {
     fprintf(stderr,
-        " Usage:  rplc [-iwulacvbsfFNWARIOUBE] \"search_str\" \"replace_str\" \"fname\"\n\n"
+        " Usage:  rplc [-iwulacvbsefFNWARIOUBE] \"search_str\" \"replace_str\" \"fname\"\n\n"
         "  -i search and replace characters are ASCII integer values 0-255, space/comma delimited, quoted.\n"
         "  -w can use '?' as a character wildcard in 'search_str' and 'replace_str'. Must use quotes.\n"
         "  -u replace 'search_str' with uppercase.\n"
@@ -1791,6 +1798,7 @@ void print_usage()
         "  -b saves a backup copy of original file (*.rplc.bak).\n"
         "  -s strip unprintable chars generated from man/info commands 'search_str' and 'replace_str' are not allowed.\n"
         "  -f file and directory name replacement, not content replacement. Replaces first occurrence of search_str.\n"
+        "  -e Print any error statements to console, suppress by default.\n"
         "  -F exact file and directory name replacement, not content replacement.\n"
         "  -N dry run for -f and -F options. Does not change names.\n"
         "  -W searches for whole word occurrences only.\n"

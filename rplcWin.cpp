@@ -56,6 +56,7 @@ extern FilesDirs g_dirs[MAX_FILES_OR_DIRS_TO_CHANGE];
 extern FilesDirs g_files[MAX_FILES_OR_DIRS_TO_CHANGE];
 extern long g_dirRenameCnt;
 extern long g_fileRenameCnt;
+extern bool SuppressErrorsPrintout;
 
 extern char Temp_File[];
 extern long g_numDirsToOmit;
@@ -355,8 +356,10 @@ LBL_END:
 //void PrintLastError(LPTSTR lpszFunction)
 void PrintLastError(char* lpszFunction)
 { 
-    // Retrieve the system error message for the last-error code
+    if (SuppressErrorsPrintout)
+        return;
 
+    // Retrieve the system error message for the last-error code
     LPVOID lpMsgBuf;
     LPVOID lpDisplayBuf;
     DWORD dw = GetLastError(); 
