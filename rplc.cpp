@@ -79,6 +79,7 @@
 //#include <share.h>
 #include <sys/stat.h>
 #include <errno.h>
+#include <iostream>
 #include <fstream>
 #include "rplc.h"
 
@@ -854,10 +855,7 @@ int CountIntegerArgs(char *arr, char *str)
     int i = 0, j = 0, num, cnt = 0;
 
     // Remove leading whitespace (and commas)
-//    while ( (str[i] == 32 || str[i] == 9) && str[i] != 0)
-    while ( (str[i] == SPACE_ASCII_INT ||
-             str[i] == TAB_ASCII_INT   || 
-             str[i] == COMMA_ASCII_INT  ) && str[i] != 0)
+    while (str[i] != 0 && (str[i] == SPACE_ASCII_INT || str[i] == TAB_ASCII_INT || str[i] == COMMA_ASCII_INT))
         { i++; }
     ptrs[j++] = &str[i];
     if (strlen(ptrs[j-1]) > 0)
@@ -866,17 +864,10 @@ int CountIntegerArgs(char *arr, char *str)
     {
         i++;
         // Get next integer when encounter delimiter (comma, space, tab)
-        if (str[i] == SPACE_ASCII_INT ||
-           str[i] == TAB_ASCII_INT   ||
-           str[i] == COMMA_ASCII_INT   )
+        if (str[i] == SPACE_ASCII_INT || str[i] == TAB_ASCII_INT || str[i] == COMMA_ASCII_INT)
         {
             i++;
-            // Remove delimiters (spaces, commas, tabs)
-//            while ( (str[i] == 32 || str[i] == 9) && str[i] != 0)
-            while ( (str[i] == SPACE_ASCII_INT ||
-                     str[i] == TAB_ASCII_INT   ||
-                     str[i] == COMMA_ASCII_INT  ) && str[i] != 0)
-
+            while (str[i] != 0 && (str[i] == SPACE_ASCII_INT || str[i] == TAB_ASCII_INT || str[i] == COMMA_ASCII_INT))
                 { i++; }
             if (str[i] != 0)
             {
@@ -885,8 +876,14 @@ int CountIntegerArgs(char *arr, char *str)
             }
         }
     }
+
     for (i = 0; i < cnt; i++)
     {
+        // If first character is not a digit, 
+        if (!isdigit(ptrs[i][0])) {
+            cnt = 0;
+            RPLC_ERR_MSG(32, 1, __LINE__);
+        }
         num = atoi(ptrs[i]);
         if (num >= 0 && num < 256)
             arr[i] = (char)num;
@@ -894,7 +891,7 @@ int CountIntegerArgs(char *arr, char *str)
             RPLC_ERR_MSG(1, 1, __LINE__);
     }
 
-      retVal = cnt;
+    retVal = cnt;
 
 LBL_END:
 
@@ -1420,14 +1417,9 @@ void fill_f_arr_no_wc(char* f_arr_nowc, const char* f_arr)
     f_arr_nowc[j] = 0;
 }
 
-/***************************************************************************
-    This function reads the 'find' and 'replace' stings from the command
-    line and puts them in the arrays 'F_Arr' and 'R_Arr'.
-***************************************************************************/
-
 long count_arg_chars(char *aargv[])
 {
-    long retVal = 0;
+    long retVal = -1;
     int i, j, len1, len2;
 
     if (Integer)
@@ -1495,6 +1487,8 @@ long count_arg_chars(char *aargv[])
 
     if (FileDirNames)
         fill_f_arr_no_wc(F_Arr_NoWC, F_Arr);
+
+    retVal = 0;
 
 LBL_END:
 
@@ -1766,6 +1760,9 @@ void this_sucks(int i, int n, int line)
             break;
         case 31:
             fprintf(stderr, "Exceeding limit of file names to store - current: %d, max: %d", g_dirRenameCnt, MAX_FILES_OR_DIRS_TO_CHANGE);
+            break;
+        case 32:
+            fprintf(stderr, "Integer argument is not an integer");
             break;
 
     } // switch(i)
