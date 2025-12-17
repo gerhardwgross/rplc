@@ -98,7 +98,7 @@ struct FilesDirs
     Public Function Prototypes
 ***************************************************************************/
 long ProcessFile(char *fname, unsigned fattrib);
-void this_sucks(int i, int n, int line);
+void this_sucks(int i, int n, int line, bool exitApp = true);
 char* ErrNoMsg(int errNum);
 void separate_filename_and_path(const char *path, char *dir, int dir_sz, char *last, int last_sz);
 int AddToDirListIfNameMatch(char* current_path, char* name);

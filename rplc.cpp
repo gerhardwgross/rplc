@@ -1656,10 +1656,16 @@ void ChangePathEndNames(FilesDirs arr[], long cnt)
     If passed arg is 99, print usage and not error.
 ***************************************************************************/
 
-void this_sucks(int i, int n, int line)
+void this_sucks(int i, int n, int line, bool exitApp)
 {
-    if (SuppressErrorsPrintout)
+    if (SuppressErrorsPrintout) {
+        if (exitApp) {
+            fwprintf(stderr, L"\n");
+            print_usage();
+            exit(1);
+        }
         return;
+    }
 
     char buff[_MAX_PATH];
     if (Instructions)
